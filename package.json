@@ -1,0 +1,19 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": ">This is database for ecommerce.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NeehalB/ecommercebackend.git"
+  },
+  "author": "Neehal",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NeehalB/ecommercebackend/issues"
+  },
+  "homepage": "https://github.com/NeehalB/ecommercebackend#readme"
+}
