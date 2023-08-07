@@ -5,6 +5,8 @@ import mongoose from "mongoose";
 import userRouter from "./router/user.router";
 import categoryRouter from "./router/category.router";
 import subCategoryRouter from "./router/subcategory.router";
+import productRouter from "./router/product.router";
+import cartRouter from "./router/cart.router";
 
 const app = express();
 app.use(express.static("public"));
@@ -24,3 +26,5 @@ mongoose
 app.use(userRouter);
 app.use(categoryRouter);
 app.use(subCategoryRouter);
+app.use(productRouter);
+app.use(cartRouter);
