@@ -7,11 +7,13 @@ import categoryRouter from "./router/category.router";
 import subCategoryRouter from "./router/subcategory.router";
 import productRouter from "./router/product.router";
 import cartRouter from "./router/cart.router";
+import cors from "cors";
 
 const app = express();
 app.use(express.static("public"));
 app.use("/uploads", express.static("uploads"));
 app.use(express.json());
+app.use(cors());
 const PORT = process.env.PORT;
 
 app.listen(PORT, () => {

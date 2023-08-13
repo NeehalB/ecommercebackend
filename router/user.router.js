@@ -10,7 +10,7 @@ import {
 
 const userRouter = express.Router();
 
-userRouter.get("/sign-in", signIn);
+userRouter.post("/sign-in", signIn);
 userRouter.post("/sign-up", signUp);
 userRouter.get("/user-details", auth, getUserDetails);
 userRouter.delete("/user-delete", auth, deleteUser);

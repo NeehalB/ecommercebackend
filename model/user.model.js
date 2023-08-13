@@ -25,7 +25,8 @@ const userModel = new Schema({
   },
   dob: {
     type: Date,
-    required: true,
+    // required: true,
+    default: "",
   },
   avatar: {
     type: String,

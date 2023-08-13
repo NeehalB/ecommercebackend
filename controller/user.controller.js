@@ -1,24 +1,64 @@
 import userModel from "../model/user.model";
 import jwt from "jsonwebtoken";
+import multer from "multer";
+import fs from "fs";
+import path from "path";
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    if (fs.existsSync("./uploads")) {
+      cb(null, "./uploads");
+    } else {
+      fs.mkdirSync("./uploads");
+      cb(null, "./upload");
+    }
+  },
+  filename: function (req, file, cb) {
+    const imgName = file.originalname;
+    const imgArr = imgName.split(".");
+    imgArr.pop();
+    const extImg = path.extname(imgName);
+    const imageName = imgArr.join(".") + "-" + Date.now() + extImg;
+    cb(null, imageName);
+  },
+});
+
+const upload = multer({ storage: storage });
 
 export const signUp = async (req, res) => {
   try {
-    const { firstname, lastname, email, contact, password, dob } = req.body;
-    const userData = new userModel({
-      first_name: firstname,
-      last_name: lastname,
-      email: email,
-      password: password,
-      dob: dob,
-      contact: contact,
-    });
-    userData.save();
-    if (userData) {
-      return res.status(201).json({
-        data: userData,
-        message: "User added successfully.",
+    const uploadFile = upload.single("avatar");
+
+    uploadFile(req, res, (err) => {
+      if (err) return res.status(400).json({ message: err.message });
+
+      const { firstname, lastname, email, contact, password, dob, role } =
+        req.body;
+
+      let image = "";
+      if (req.file !== undefined) {
+        image = req.file.filename;
+        console.log(req.file.filename);
+      }
+
+      const userData = new userModel({
+        first_name: firstname,
+        last_name: lastname,
+        email: email,
+        password: password,
+        dob: dob,
+        contact: contact,
+        role: role,
+        avatar: image,
       });
-    }
+      userData.save();
+      if (userData) {
+        return res.status(201).json({
+          data: userData,
+          message: "User added successfully.",
+        });
+      }
+    });
   } catch (err) {
     res.status(500).json({
       message: err.message,
@@ -47,7 +87,6 @@ export const signIn = async (req, res) => {
       process.env.SECRET_KEY,
       { expiresIn: "1h" }
     );
-    console.log(token);
 
     return res.status(200).json({
       token: token,
