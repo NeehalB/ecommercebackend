@@ -3,6 +3,7 @@ import jwt from "jsonwebtoken";
 import multer from "multer";
 import fs from "fs";
 import path from "path";
+import nodemailer from "nodemailer";
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -68,31 +69,66 @@ export const signUp = async (req, res) => {
 
 export const signIn = async (req, res) => {
   try {
-    const { email, password } = req.body;
-    const userData = await userModel.findOne({
-      email: email,
-      password: password,
-    });
-    if (!userData) {
+    const { email, password, userotp } = req.body;
+
+    if (!password && !userotp) {
       return res.status(400).json({
-        message: "User doesn't exist",
+        message: "User data not entered.",
       });
     }
 
-    const token = jwt.sign(
-      {
-        userid: userData._id,
-        email: userData.email,
-      },
-      process.env.SECRET_KEY,
-      { expiresIn: "1h" }
-    );
+    if (password) {
+      const userData = await userModel.findOne({
+        email: email,
+        password: password,
+      });
 
-    return res.status(200).json({
-      token: token,
-      data: userData,
-      message: "Successfull login.",
-    });
+      if (!userData) {
+        return res.status(400).json({
+          message: "Email or password incorrect.",
+        });
+      }
+
+      const token = jwt.sign(
+        {
+          userid: userData._id,
+          email: userData.email,
+        },
+        process.env.SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+
+      return res.status(200).json({
+        token: token,
+        data: userData,
+        message: "Successfull login.",
+      });
+    } else {
+      const userData = await userModel.findOne({
+        otp: userotp,
+      });
+
+      if (!userData) {
+        return res.status(400).json({
+          message: "OTP expired.",
+        });
+      }
+
+      const token = jwt.sign(
+        {
+          userid: userData._id,
+          email: userData.email,
+        },
+        process.env.SECRET_KEY,
+        { expiresIn: "1h" }
+      );
+
+      return res.status(200).json({
+        token: token,
+        data: userData,
+        message: "Successfull login.",
+      });
+    }
   } catch (error) {
     res.status(500).json({
       message: error.message,
@@ -157,6 +193,63 @@ export const updateUser = async (req, res) => {
         data: userData,
         message: "Updated user data successfully.",
       });
+    }
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+};
+
+export const getOTP = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        message: "Enter valid email id.",
+      });
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000);
+
+    const userData = await userModel.updateOne(
+      { email: email },
+      { $set: { otp: otp } }
+    );
+
+    if (userData.acknowledged) {
+      const transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: "Sending OTP via email.",
+        html: `<h1>Your OTP is<h1><p>${otp}<p>`,
+      };
+
+      transporter.sendMail(mailOptions, (err, info) => {
+        if (err) {
+          console.log(err);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+
+      res.status(200).json({
+        message: "OTP sent successfully.",
+      });
+
+      setTimeout(async () => {
+        await userModel.updateOne({ email: email }, { $set: { otp: null } });
+        console.log("OTP reset for", email);
+      }, 300000);
     }
   } catch (err) {
     res.status(500).json({

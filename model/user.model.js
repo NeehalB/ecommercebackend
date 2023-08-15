@@ -41,7 +41,7 @@ const userModel = new Schema({
     default: Date.now(),
   },
   otp: {
-    type: Number,
+    type: Number || null,
     default: null,
   },
   role: {

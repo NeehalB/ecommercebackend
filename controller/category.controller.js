@@ -76,6 +76,23 @@ export const findCategory = async (req, res) => {
   }
 };
 
+export const getAllCategories = async (req, res) => {
+  try {
+    const categoryData = await categoryModel.find();
+    if (!categoryData) {
+      return res.status(400).json({
+        message: "Category list empty.",
+      });
+    }
+    return res.status(200).json({
+      data: categoryData,
+      message: "Categories retrived.",
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
 export const deleteCategory = async (req, res) => {
   try {
     const { name } = req.body;
